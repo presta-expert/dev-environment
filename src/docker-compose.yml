@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mariadb:${MARIADB_VERSION:-10.6}
+    restart: always
+    volumes:
+      - ./db-data:/var/lib/mysql
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=1
+      - MARIADB_USER=${DB_USER:-prestashop}
+      - MARIADB_PASSWORD=${DB_PASSWD:-prestashop}
+      - MARIADB_DATABASE=${DB_NAME:-prestashop}
+
+  prestashop:
+    build:
+      dockerfile: .docker/Dockerfile
+      context: ./
+      args:
+        - PRESTASHOP_VERSION=${PRESTASHOP_VERSION:-1.7}
+        - USER_ID=${USER_ID:-1000}
+        - GROUP_ID=${GROUP_ID:-1000}
+    depends_on:
+      - mysql
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html:delegated
+    environment:
+      - PS_INSTALL_AUTO=${PS_INSTALL_AUTO:-1}
+      - PS_FOLDER_INSTALL=${PS_FOLDER_INSTALL:-install-dev}
+      - PS_FOLDER_ADMIN=${PS_FOLDER_ADMIN:-admin-dev}
+
+      - DB_SERVER=${DB_SERVER:-mysql}
+      - DB_USER=${DB_USER:-prestashop}
+      - DB_PASSWD=${DB_PASSWD:-prestashop}
+      - DB_NAME=${DB_NAME:-prestashop}
+
+      - PS_DOMAIN=${PS_DOMAIN:-localhost:8080}
+      - PS_COUNTRY=${PS_COUNTRY:-pl}
+      - PS_LANGUAGE=${PS_LANGUAGE:-pl}
+      - PS_DEV_MODE=${PS_DEV_MODE:-0}
+      - ADMIN_MAIL=${PS_ADMIN_MAIL:-support@presta.expert}
+      - ADMIN_PASSWD=${PS_ADMIN_PASSWD:-presta.expert}
+
+  phpmyadmin:
+    image: phpmyadmin:${PHPMYADMIN_VERSION:-5.2}
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "3309:80"
+    environment:
+      - PMA_HOST=mysql
+
+  mailhog:
+    image: mailhog/mailhog:v${MAILHOG_VERSION:-1.0.1}
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
