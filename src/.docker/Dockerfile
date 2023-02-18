@@ -32,7 +32,7 @@ RUN curl -fSL 'https://downloads.ioncube.com/loader_downloads/ioncube_loaders_li
     && export IONCUBE_PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;') \
     && echo "zend_extension = /usr/share/ioncube/ioncube_loader_lin_$IONCUBE_PHP_VERSION.so" > /usr/local/etc/php/conf.d/00_ioncube.ini
 
-# Installing mhsendmail to make MailHog work by default
+# Installing mhsendmail to make MailHog work with php mail by default
 RUN wget -q https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
     && mv mhsendmail_linux_amd64 /usr/local/bin/mhsendmail \
     && chmod +x /usr/local/bin/mhsendmail

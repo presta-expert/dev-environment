@@ -18,12 +18,14 @@ bin/dev.sh [up/down/start/stop/pause/build] prestashop_version
 
 bin/dev.sh up 1.7.8.8
 ```
-_NOTE 1: You may be asked for the sudo password to set permissions, please provide it or run the script with sudo and **NEVER** use it in production._
+_NOTE: You may be asked for the sudo password to set permissions, please provide it or run the script with sudo and **NEVER** use it in production._
 
 After a few moments your PrestaShop is installed and running at [http://localhost:8080](http://localhost:8080) _(BO: [http://localhost:8080/admin-dev](http://localhost:8080/admin-dev))_, your dev environment also includes:
 - **[phpMyAdmin](https://github.com/phpmyadmin/phpmyadmin)** _(for database management)_ which is accessible from [http://localhost:3309](http://localhost:3309)
 - **[MailHog](https://github.com/mailhog/MailHog)** and **[mhsendmail](https://github.com/mailhog/mhsendmail)** _(for local e-mail testing based on SMTP)_ which is accessible from [http://localhost:8025](http://localhost:8025)
 - **[IonCube Loader](https://www.ioncube.com/loaders.php)** _(for loading secured php files, it is pretty popular practice in PrestaShop modules)._
+
+To check current PrestaShop installation progress run `docker logs [your container hash for PrestaShop]` *(hash can be found manually using `docker ps` command)*.
 
 Your PrestaShop will be built in the [./builds](./builds) directory under the name _./builds/prestashop\_{SPECIFIED_VERSION}_ for example _./builds/prestashop_1.7.8.8_
 
@@ -65,13 +67,13 @@ bin/dev.sh up 1.5.6.3
 bin/dev.sh up 8.0.0-7.4-apache
 ```
 
-You can also change version of the other dev environment services by modifying **.env** file inside your built PrestaShop _(i.e. ./builds/prestashop_1.7.8.8/.env):_
+You can also change version of the other services by modifying **.env** file inside your already built PrestaShop _(i.e. ./builds/prestashop_1.7.8.8/.env):_
 ```dotenv
-# Custom mariadb, phpmyadmin and mailhog versions 
-MARIADB_VERSION=10.5
+# Custom phpmyadmin and mailhog versions
 PHPMYADMIN_VERSION=5.1
 MAILHOG_VERSION=1.0.0
 ```
+_NOTE: We do not recommend downgrading the MariaDB version due to possible compatibility issues with database files previously created (db-data volume). If you absolutely need a different version of MariaDB set it manually in [./src/.env](./src/.env) before building PrestaShop._
 
 Don't forget to rebuild your environment after above change using i.e. `bin/dev.sh up 1.7.8.8`
 
