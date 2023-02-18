@@ -14,7 +14,7 @@ cat << "EOF"
            ██╔══╝   ██╔██╗ ██╔═══╝ ██╔══╝  ██╔══██╗   ██║
         ██╗███████╗██╔╝ ██╗██║     ███████╗██║  ██║   ██║
         ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝
-                     dev environment v1.0.0
+                     dev environment v1.1.0
 
 EOF
 
@@ -55,11 +55,48 @@ fi
 # Change directory to specified PrestaShop
 cd "$PRESTASHOP_DIRECTORY" || exit 1
 
+# Checking if docker compose sub-command exists
+DOCKER_COMPOSE_OUTPUT=$(docker compose 2>&1)
+
 # Run docker and "fix" permissions (don't you even dare to use it on production)
 if [ "$1" = "up" ]; then
-  docker compose up -d \
-    && sudo find "$PRESTASHOP_DIRECTORY" -type d -exec chmod 777 {} + \
-    && sudo find "$PRESTASHOP_DIRECTORY" -type f -exec chmod 666 {} +
+
+  # Using docker compose or docker-compose
+  if echo "$DOCKER_COMPOSE_OUTPUT" | grep -q "not a docker command"; then
+    docker-compose up -d
+  else
+    docker compose up -d
+  fi
+
+  # Creating path to the lockfile which indicates that permissions were already fixed
+  PERMISSIONS_LOCKFILE="$PRESTASHOP_DIRECTORY/.docker/locks/permissions_fixed.lock"
+
+  # Fixing permissions only once by creating lockfile
+  if ! test -f "$PERMISSIONS_LOCKFILE"; then
+    sudo find "$PRESTASHOP_DIRECTORY" -type d -exec chmod 777 {} + \
+      && sudo find "$PRESTASHOP_DIRECTORY" -type f -exec chmod 666 {} + \
+      && touch "$PERMISSIONS_LOCKFILE"
+  fi
+
+  # Creating path to the lockfile which indicates that MailHog was already configured
+  MAILHOG_LOCKFILE="$PRESTASHOP_DIRECTORY/.docker/locks/mailhog_configured.lock"
+
+  # PrestaShop is currently installing in background (by default).
+  # So we are trying to execute script via wget which reconfigures PrestaShop to use SMTP (max 20 tries).
+  #
+  # It may also be that the current configuration of the .env file does not allow auto install.
+  # Then this operation will fail after 20 attempts and it will be necessary to manually configure
+  # PrestaShop to use SMTP in the backoffice.
+  if ! test -f "$MAILHOG_LOCKFILE"; then
+    wget -q --spider --tries=20 http://localhost:8080/.docker/scripts/mailhog.php \
+      && touch "$MAILHOG_LOCKFILE" &
+  fi
 else
-  docker compose "$1"
+
+  # Using docker compose or docker-compose
+  if echo DOCKER_COMPOSE_OUTPUT | grep -q "not a docker command"; then
+      docker-compose "$1"
+  else
+      docker compose "$1"
+  fi
 fi
