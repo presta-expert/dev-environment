@@ -3,6 +3,11 @@ ARG PRESTASHOP_VERSION
 # Using specified PrestaShop version from .env
 FROM prestashop/prestashop:$PRESTASHOP_VERSION
 
+# Update stretch repositories
+RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
+           -e '/stretch-updates/d' /etc/apt/sources.list
+
 # Installing some additional packages
 RUN apt update \
     && apt install -y \

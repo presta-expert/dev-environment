@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.1 (2023-05-30)
+
+- Fixed `apt update` problem due to debian has moved stretch repositories to archive.debian.org
+
 ## 1.1.0 (2023-02-18)
 
 - Configured automatic sending of all e-mails from the store via MailHog SMTP. [[Issue #1]](https://github.com/presta-expert/dev-environment/issues/1)
